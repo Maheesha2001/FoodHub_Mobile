@@ -85,10 +85,15 @@ class LoginActivity : FragmentActivity() {
 
                 if (response.isSuccessful) {
                     val res = response.body()
-                    Log.d("LOGIN_DEBUG", "Body: $res")
+                   // Log.d("LOGIN_DEBUG", "Body: $res")
+                    Log.d("LOGIN_DEBUG_RAW", response.raw().toString())
 
-                    if (res != null && res.success) {
-                        session.saveToken(res.token!!)
+                    Log.d("LOGIN_DEBUG_HEADERS", response.headers().toString())
+
+                    if (res != null && res.success && res.deliveryPersonId != null) {
+                        Log.d("LOGIN_DEBUG", "DeliveryPersonId = ${res.deliveryPersonId}")
+                        session.saveDeliveryPersonId(res.deliveryPersonId!!)
+                        //session.saveToken(res.token!!)
                         startHomeActivity()
                     } else {
                         Toast.makeText(
@@ -125,7 +130,7 @@ class LoginActivity : FragmentActivity() {
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    session.saveToken("BIOMETRIC_LOGIN")
+                    //session.saveToken("BIOMETRIC_LOGIN")
                     startHomeActivity()
                 }
 
@@ -148,9 +153,13 @@ class LoginActivity : FragmentActivity() {
     }
 
     private fun startHomeActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
+        // ✅ Clear login stack to avoid going back
+        startActivity(Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
         finish()
     }
+
 }
 
 @Composable

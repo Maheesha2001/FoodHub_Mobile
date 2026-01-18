@@ -21,27 +21,64 @@ fun FoodHubNavHost() {
         navController = navController,
         startDestination = "pending_orders"
     ) {
+
         composable("pending_orders") {
-            PendingOrdersScreen(onSelectOrder = { order ->
-                val json = URLEncoder.encode(Json.encodeToString(order), "UTF-8")
-                navController.navigate("order_details/$json")
-            })
+            PendingOrdersScreen { order ->
+                navController.navigate("order_details/${order.code}")
+            }
         }
 
         composable(
-            route = "order_details/{orderJson}",
-            arguments = listOf(navArgument("orderJson") { type = NavType.StringType })
+            route = "order_details/{orderCode}",
+            arguments = listOf(
+                navArgument("orderCode") { type = NavType.StringType }
+            )
         ) { entry ->
-            val encoded = entry.arguments?.getString("orderJson") ?: ""
-            val json = URLDecoder.decode(encoded, "UTF-8")
-            val order = Json.decodeFromString<Order>(json)
+            val orderCode = entry.arguments?.getString("orderCode")!!
 
-            OrderDetailsScreen(order = order) {
-                navController.popBackStack()
-            }
+            OrderDetailsScreen(
+                orderCode = orderCode,
+                onComplete = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
+
+
+
+
+//
+//@Composable
+//fun FoodHubNavHost() {
+//    val navController = rememberNavController()
+//
+//    NavHost(
+//        navController = navController,
+//        startDestination = "pending_orders"
+//    ) {
+//        composable("pending_orders") {
+//            PendingOrdersScreen(onSelectOrder = { order ->
+//                val json = URLEncoder.encode(Json.encodeToString(order), "UTF-8")
+//                navController.navigate("order_details/$json")
+//            })
+//        }
+//
+//        composable(
+//            route = "order_details/{orderJson}",
+//            arguments = listOf(navArgument("orderJson") { type = NavType.StringType })
+//        ) { entry ->
+//            val encoded = entry.arguments?.getString("orderJson") ?: ""
+//            val json = URLDecoder.decode(encoded, "UTF-8")
+//            val order = Json.decodeFromString<Order>(json)
+//
+//            OrderDetailsScreen(order = order) {
+//                navController.popBackStack()
+//            }
+//        }
+//    }
+//}
 
 
 

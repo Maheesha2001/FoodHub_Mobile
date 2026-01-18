@@ -2,7 +2,7 @@
     @kotlinx.serialization.Serializable
     data class Order(
         val id: Int,
-        val code: String?,
+        val code: String,
         val totalAmount: Double,
         val status: String,
         val createdAt: String,

@@ -30,7 +30,7 @@
             android:name=".ui.screens.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.FoodHubMobile" />
-
+        <activity android:name=".AttendanceActivity" />
     </application>
 
 </manifest>
