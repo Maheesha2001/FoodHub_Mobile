@@ -14,8 +14,14 @@ interface ApiService {
     @POST("api/DeliveryApi/login")
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-    @GET("api/DeliveryApi/pending")
-    suspend fun getPendingOrders(): Response<List<PendingOrder>>
+//    @GET("api/DeliveryApi/pending")
+//    suspend fun getPendingOrders(): Response<List<PendingOrder>>
+
+    @GET("api/DeliveryApi/assigned/today/{driverId}")
+    suspend fun GetTodaysAssignedOrders(
+        @Path("driverId") driverId: String
+    ): Response<List<PendingOrder>>
+
 
     @GET("api/orders/{id}")
     suspend fun getOrderDetails(@Path("id") id: String): Response<Order>

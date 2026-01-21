@@ -23,6 +23,12 @@ import com.example.foodhubmobile.models.LoginResponse
 import com.example.foodhubmobile.network.RetrofitClient
 import com.example.foodhubmobile.utils.SessionManager
 import retrofit2.Call
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+
 
 class LoginActivity : FragmentActivity() {
 
@@ -44,29 +50,7 @@ class LoginActivity : FragmentActivity() {
             )
         }
     }
-//
-//    private fun login(email: String, password: String) {
-//        val call = RetrofitClient.instance.login(LoginRequest(email, password))
-//
-//        call.enqueue(object : retrofit2.Callback<LoginResponse> {
-//            override fun onResponse(
-//                call: Call<LoginResponse>,
-//                response: retrofit2.Response<LoginResponse>
-//            ) {
-//                val res = response.body()
-//                if (res != null && res.success) {
-//                    session.saveToken(res.token!!)
-//                    startHomeActivity()
-//                } else {
-//                    Toast.makeText(this@LoginActivity, "Invalid login", Toast.LENGTH_SHORT).show()
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-//                Toast.makeText(this@LoginActivity, "Server error", Toast.LENGTH_SHORT).show()
-//            }
-//        })
-//    }
+
 
     private fun login(email: String, password: String) {
 
@@ -161,47 +145,151 @@ class LoginActivity : FragmentActivity() {
     }
 
 }
-
 @Composable
-fun LoginScreen(onLogin: (String, String) -> Unit, onBiometric: () -> Unit) {
-
+fun LoginScreen(
+    onLogin: (String, String) -> Unit,
+    onBiometric: () -> Unit
+) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
-    Column(Modifier.padding(20.dp)) {
+    val darkBackground = Color(0xFF212529)
+    val primaryYellow = Color(0xFFFFC107)
 
-        OutlinedTextField(
-            value = email.value,
-            onValueChange = { email.value = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        Button(
-            onClick = { onLogin(email.value, password.value) },
-            modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(darkBackground)
+            .systemBarsPadding(),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(10.dp)
         ) {
-            Text("Login")
-        }
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-        Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Welcome Back",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = darkBackground
+                )
 
-        Button(
-            onClick = onBiometric,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Login with Fingerprint")
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Login to continue",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = email.value,
+                    onValueChange = { email.value = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OutlinedTextField(
+                    value = password.value,
+                    onValueChange = { password.value = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { onLogin(email.value, password.value) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryYellow,
+                        contentColor = darkBackground
+                    )
+                ) {
+                    Text("Login")
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OutlinedButton(
+                    onClick = onBiometric,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = darkBackground
+                    ),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        width = 1.dp
+                    )
+                ) {
+                    Text("Login with Fingerprint")
+                }
+            }
         }
     }
 }
+
+
+//@Composable
+//fun LoginScreen(onLogin: (String, String) -> Unit, onBiometric: () -> Unit) {
+//
+//    val email = remember { mutableStateOf("") }
+//    val password = remember { mutableStateOf("") }
+//
+//    Column(Modifier.padding(20.dp)) {
+//
+//        OutlinedTextField(
+//            value = email.value,
+//            onValueChange = { email.value = it },
+//            label = { Text("Email") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(Modifier.height(10.dp))
+//
+//        OutlinedTextField(
+//            value = password.value,
+//            onValueChange = { password.value = it },
+//            label = { Text("Password") },
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(Modifier.height(20.dp))
+//
+//        Button(
+//            onClick = { onLogin(email.value, password.value) },
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Login")
+//        }
+//
+//        Spacer(Modifier.height(12.dp))
+//
+//        Button(
+//            onClick = onBiometric,
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Login with Fingerprint")
+//        }
+//    }
+//}

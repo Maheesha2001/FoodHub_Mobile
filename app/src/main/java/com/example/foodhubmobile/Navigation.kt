@@ -7,25 +7,37 @@ import androidx.navigation.navArgument
 import com.example.foodhubmobile.models.Order
 import com.example.foodhubmobile.ui.screens.OrderDetailsScreen
 import com.example.foodhubmobile.ui.screens.PendingOrdersScreen
+import com.example.foodhubmobile.utils.SessionManager
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import java.net.URLDecoder
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun FoodHubNavHost() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val session = SessionManager(context)
 
     NavHost(
         navController = navController,
         startDestination = "pending_orders"
     ) {
 
+//        composable("pending_orders") {
+//            PendingOrdersScreen { order ->
+//                navController.navigate("order_details/${order.code}")
+//            }
+//        }
         composable("pending_orders") {
-            PendingOrdersScreen { order ->
-                navController.navigate("order_details/${order.code}")
-            }
+            PendingOrdersScreen(
+                session = session, // pass session here
+                onSelectOrder = { order ->
+                    navController.navigate("order_details/${order.orderCode}")
+                }
+            )
         }
 
         composable(

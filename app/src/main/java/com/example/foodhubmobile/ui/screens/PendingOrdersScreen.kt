@@ -17,109 +17,248 @@
         import com.example.foodhubmobile.network.ApiClient
         import com.example.foodhubmobile.network.ApiService
         import kotlinx.coroutines.launch
+        import androidx.compose.foundation.background
+        import androidx.compose.foundation.shape.RoundedCornerShape
+        import androidx.compose.ui.graphics.Color
+        import com.example.foodhubmobile.utils.SessionManager
+
+        //        @Composable
+//        fun PendingOrdersScreen(
+//            onSelectOrder: (PendingOrder) -> Unit = {}
+//        ) {
+//            val api = ApiClient.retrofit.create(ApiService::class.java)
+//            var orders by remember { mutableStateOf<List<PendingOrder>>(emptyList()) }
+//
+//            LaunchedEffect(Unit) {
+//                try {
+//                    val response = api.getPendingOrders()
+//                    if (response.isSuccessful) {
+//                        orders = response.body() ?: emptyList()
+//                        Log.d("PendingOrders", "Loaded ${orders.size} orders")
+//                    } else {
+//                        Log.e("PendingOrders", "Error ${response.code()}")
+//                    }
+//                } catch (e: Exception) {
+//                    Log.e("PendingOrders", "Exception", e)
+//                }
+//            }
+//
+//            Column(modifier = Modifier.padding(16.dp)) {
+//                Text(
+//                    text = "Pending Deliveries",
+//                    style = MaterialTheme.typography.titleLarge
+//                )
+//
+//                Spacer(modifier = Modifier.height(8.dp))
+//
+//                LazyColumn {
+//                    items(orders) { order ->
+//                        PendingOrderCard(order) {
+//                            onSelectOrder(order)
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+//        @Composable
+//        fun PendingOrdersScreen(
+//            onSelectOrder: (PendingOrder) -> Unit = {}
+//        ) {
+//            val api = ApiClient.retrofit.create(ApiService::class.java)
+//            var orders by remember { mutableStateOf<List<PendingOrder>>(emptyList()) }
+//
+//            val primaryYellow = Color(0xFFFFC107)
+//            val darkBackground = Color(0xFF212529)
+//
+//            LaunchedEffect(Unit) {
+//                try {
+//                    val response = api.getPendingOrders()
+//                    if (response.isSuccessful) {
+//                        orders = response.body() ?: emptyList()
+//                        Log.d("PendingOrders", "Loaded ${orders.size} orders")
+//                    } else {
+//                        Log.e("PendingOrders", "Error ${response.code()}")
+//                    }
+//                } catch (e: Exception) {
+//                    Log.e("PendingOrders", "Exception", e)
+//                }
+//            }
+//
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(darkBackground)
+//                    .systemBarsPadding()
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(
+//                            start = 16.dp,
+//                            end = 16.dp,
+//                            top = 24.dp,
+//                            bottom = 24.dp
+//                        )
+//                ) {
+//
+//                    Text(
+//                        text = "Pending Deliveries",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = Color.White
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    LazyColumn(
+//                        contentPadding = PaddingValues(bottom = 16.dp)
+//                    ) {
+//                        items(orders) { order ->
+//                            PendingOrderCard(
+//                                order = order,
+//                                onClick = { onSelectOrder(order) }
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//
+//        }
 
         @Composable
         fun PendingOrdersScreen(
+            session: SessionManager,
             onSelectOrder: (PendingOrder) -> Unit = {}
         ) {
             val api = ApiClient.retrofit.create(ApiService::class.java)
             var orders by remember { mutableStateOf<List<PendingOrder>>(emptyList()) }
 
+            val primaryYellow = Color(0xFFFFC107)
+            val darkBackground = Color(0xFF212529)
+
             LaunchedEffect(Unit) {
                 try {
-                    val response = api.getPendingOrders()
-                    if (response.isSuccessful) {
-                        orders = response.body() ?: emptyList()
-                        Log.d("PendingOrders", "Loaded ${orders.size} orders")
+                    val driverId = session.getDeliveryPersonId() // get driverId from session
+                    if (!driverId.isNullOrEmpty()) {
+                        val response = api.GetTodaysAssignedOrders(driverId)
+                        if (response.isSuccessful) {
+                            orders = response.body() ?: emptyList()
+                            Log.d("PendingOrders", "Loaded ${orders.size} orders")
+                        } else {
+                            Log.e("PendingOrders", "Error ${response.code()}")
+                        }
                     } else {
-                        Log.e("PendingOrders", "Error ${response.code()}")
+                        Log.e("PendingOrders", "Driver ID not found in session")
                     }
                 } catch (e: Exception) {
                     Log.e("PendingOrders", "Exception", e)
                 }
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Pending Deliveries",
-                    style = MaterialTheme.typography.titleLarge
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(darkBackground)
+                    .systemBarsPadding()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 24.dp,
+                            bottom = 24.dp
+                        )
+                ) {
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Pending Deliveries",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
 
-                LazyColumn {
-                    items(orders) { order ->
-                        PendingOrderCard(order) {
-                            onSelectOrder(order)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(orders) { order ->
+                            PendingOrderCard(
+                                order = order,
+                                onClick = { onSelectOrder(order) }
+                            )
                         }
                     }
                 }
             }
         }
 
+
         @Composable
         fun PendingOrderCard(
             order: PendingOrder,
             onClick: () -> Unit
         ) {
+            val darkText = Color(0xFF212529)
+            val accent = Color(0xFFFFC107)
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp)
+                    .padding(vertical = 8.dp)
                     .clickable { onClick() },
-                elevation = CardDefaults.cardElevation(4.dp)
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
 
+                    // Order Code (Highlight)
                     Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Order Code: ")
-                            }
-                            append(order.code)
-                        },
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "Order #${order.orderCode}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = accent,
+                        fontWeight = FontWeight.Bold
                     )
 
-
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Customer: ")
-                            }
-                            append(order.userName)
-                        },
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "Customer",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = order.customerName ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = darkText
                     )
 
-
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Delivery Name: ")
-                            }
-                            append(order.dilveryName)
-                        },
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "Delivery Name",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-
                     Text(
-                        buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Delivery Address: ")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium
+                        text = order.dilveryName ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = darkText
                     )
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
-                        text = order.address,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "Delivery Address",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = order.address ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = darkText
                     )
                 }
             }
