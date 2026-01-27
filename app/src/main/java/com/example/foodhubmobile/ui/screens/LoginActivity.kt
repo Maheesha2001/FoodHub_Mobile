@@ -3,32 +3,45 @@ package com.example.foodhubmobile.ui.screens
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.*
-import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.media3.common.util.Log
 import com.example.foodhubmobile.MainActivity
 import com.example.foodhubmobile.models.LoginRequest
 import com.example.foodhubmobile.models.LoginResponse
 import com.example.foodhubmobile.network.RetrofitClient
 import com.example.foodhubmobile.utils.SessionManager
 import retrofit2.Call
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : FragmentActivity() {
 
@@ -39,69 +52,63 @@ class LoginActivity : FragmentActivity() {
 
         session = SessionManager(this)
 
-        setContent {
-            LoginScreen(
-                onLogin = { email, password ->
-                    login(email, password)
-                },
-                onBiometric = {
-                    showBiometricPrompt()
+        setContentView(
+            ComposeView(this).apply {
+                setContent {
+                    MaterialTheme {
+                        LoginScreen(
+                            onLogin = { email, password ->
+                                login(email, password)
+                            },
+                            onBiometric = {
+                                showBiometricPrompt()
+                            }
+                        )
+                    }
                 }
-            )
-        }
+            }
+        )
     }
 
-
     private fun login(email: String, password: String) {
+        val call = RetrofitClient.instance.login(
+            LoginRequest(email, password)
+        )
 
-        Log.d("LOGIN_DEBUG", "Attempt login => email=$email, password=$password")
-
-        val call = RetrofitClient.instance.login(LoginRequest(email, password))
-
-        call.enqueue(object : retrofit2.Callback<LoginResponse> {
+        call.enqueue(object : Callback<LoginResponse> {
 
             override fun onResponse(
                 call: Call<LoginResponse>,
-                response: retrofit2.Response<LoginResponse>
+                response: Response<LoginResponse>
             ) {
-
-                Log.d("LOGIN_DEBUG", "HTTP code: ${response.code()}")
-
                 if (response.isSuccessful) {
                     val res = response.body()
-                   // Log.d("LOGIN_DEBUG", "Body: $res")
-                    Log.d("LOGIN_DEBUG_RAW", response.raw().toString())
 
-                    Log.d("LOGIN_DEBUG_HEADERS", response.headers().toString())
-
-                    if (res != null && res.success && res.deliveryPersonId != null) {
-                        Log.d("LOGIN_DEBUG", "DeliveryPersonId = ${res.deliveryPersonId}")
-                        session.saveDeliveryPersonId(res.deliveryPersonId!!)
-                        //session.saveToken(res.token!!)
+                    if (res?.success == true && res.deliveryPersonId != null) {
+                        session.saveDeliveryPersonId(res.deliveryPersonId)
                         startHomeActivity()
                     } else {
                         Toast.makeText(
                             this@LoginActivity,
-                            "Login failed: ${res?.message ?: "Wrong email or password"}",
+                            res?.message ?: "Invalid email or password",
                             Toast.LENGTH_LONG
                         ).show()
                     }
-
                 } else {
-                    val errorText = response.errorBody()?.string()
-                    Log.e("LOGIN_DEBUG", "Server error: $errorText")
-
                     Toast.makeText(
                         this@LoginActivity,
-                        "Server error: $errorText",
+                        "Server error",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                Log.e("LOGIN_DEBUG", "Retrofit failure", t)
-                Toast.makeText(this@LoginActivity, "Network failure: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Network error: ${t.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
@@ -113,37 +120,53 @@ class LoginActivity : FragmentActivity() {
             this,
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    //session.saveToken("BIOMETRIC_LOGIN")
+
+                override fun onAuthenticationSucceeded(
+                    result: BiometricPrompt.AuthenticationResult
+                ) {
                     startHomeActivity()
                 }
 
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    Toast.makeText(this@LoginActivity, "Authentication error: $errString", Toast.LENGTH_SHORT).show()
+                override fun onAuthenticationError(
+                    errorCode: Int,
+                    errString: CharSequence
+                ) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        errString,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 override fun onAuthenticationFailed() {
-                    Toast.makeText(this@LoginActivity, "Fingerprint not recognized", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Fingerprint not recognized",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-            })
+            }
+        )
 
-        val info = BiometricPrompt.PromptInfo.Builder()
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Login with Fingerprint")
-            .setDescription("Use your fingerprint to login")
+            .setDescription("Use your fingerprint to continue")
             .setNegativeButtonText("Cancel")
             .build()
 
-        biometricPrompt.authenticate(info)
+        biometricPrompt.authenticate(promptInfo)
     }
 
     private fun startHomeActivity() {
-        // ✅ Clear login stack to avoid going back
-        startActivity(Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        })
+        startActivity(
+            Intent(this, MainActivity::class.java).apply {
+                flags =
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+        )
         finish()
     }
-
 }
 @Composable
 fun LoginScreen(
@@ -153,23 +176,24 @@ fun LoginScreen(
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
-    val darkBackground = Color(0xFF212529)
-    val primaryYellow = Color(0xFFFFC107)
+    val darkBg = Color(0xFF212529)
+    val primary = Color(0xFFFFC107)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(darkBackground)
+            .background(darkBg)
             .systemBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
+
         Card(
             modifier = Modifier
-                .padding(horizontal = 24.dp)
+                .padding(24.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(10.dp)
+            elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -179,14 +203,13 @@ fun LoginScreen(
                 Text(
                     text = "Welcome Back",
                     style = MaterialTheme.typography.titleLarge,
-                    color = darkBackground
+                    fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Login to continue",
-                    style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
 
@@ -214,33 +237,29 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = { onLogin(email.value, password.value) },
+                    onClick = {
+                        onLogin(email.value, password.value)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryYellow,
-                        contentColor = darkBackground
+                        containerColor = primary,
+                        contentColor = darkBg
                     )
                 ) {
-                    Text("Login")
+                    Text("Login", fontWeight = FontWeight.Bold)
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
                     onClick = onBiometric,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = darkBackground
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        width = 1.dp
-                    )
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Login with Fingerprint")
                 }
@@ -248,48 +267,3 @@ fun LoginScreen(
         }
     }
 }
-
-
-//@Composable
-//fun LoginScreen(onLogin: (String, String) -> Unit, onBiometric: () -> Unit) {
-//
-//    val email = remember { mutableStateOf("") }
-//    val password = remember { mutableStateOf("") }
-//
-//    Column(Modifier.padding(20.dp)) {
-//
-//        OutlinedTextField(
-//            value = email.value,
-//            onValueChange = { email.value = it },
-//            label = { Text("Email") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(Modifier.height(10.dp))
-//
-//        OutlinedTextField(
-//            value = password.value,
-//            onValueChange = { password.value = it },
-//            label = { Text("Password") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        Spacer(Modifier.height(20.dp))
-//
-//        Button(
-//            onClick = { onLogin(email.value, password.value) },
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Login")
-//        }
-//
-//        Spacer(Modifier.height(12.dp))
-//
-//        Button(
-//            onClick = onBiometric,
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Login with Fingerprint")
-//        }
-//    }
-//}

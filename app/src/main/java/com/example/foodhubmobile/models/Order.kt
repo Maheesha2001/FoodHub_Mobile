@@ -6,5 +6,6 @@
         val totalAmount: Double,
         val status: String,
         val createdAt: String,
-        val items: List<OrderItem>
+        val items: List<OrderItem>,
+        val paymentStatus: String
     )

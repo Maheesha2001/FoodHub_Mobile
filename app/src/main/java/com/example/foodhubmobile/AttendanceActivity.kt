@@ -83,22 +83,6 @@ class AttendanceActivity : ComponentActivity() {
 
 }
 
-//@Composable
-//fun AttendanceScreen(date: String, onMarkAttendance: () -> Unit) {
-//    Box(
-//        modifier = Modifier.fillMaxSize(),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//            Text("Attendance for $date", style = MaterialTheme.typography.titleLarge)
-//            Spacer(modifier = Modifier.height(20.dp))
-//            Button(onClick = onMarkAttendance) {
-//                Text("Mark Attendance")
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun AttendanceScreen(
     date: String,

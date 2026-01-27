@@ -1,5 +1,7 @@
 package com.example.foodhubmobile.network
 
+import com.example.foodhubmobile.models.CheckoutRequest
+import com.example.foodhubmobile.models.CheckoutResponse
 import com.example.foodhubmobile.models.Order
 import com.example.foodhubmobile.models.LoginRequest
 import com.example.foodhubmobile.models.LoginResponse
@@ -16,6 +18,9 @@ interface ApiService {
 
 //    @GET("api/DeliveryApi/pending")
 //    suspend fun getPendingOrders(): Response<List<PendingOrder>>
+
+    @POST("api/DeliveryApi/checkout")
+    suspend fun checkout(@Body request: CheckoutRequest): Response<CheckoutResponse>
 
     @GET("api/DeliveryApi/assigned/today/{driverId}")
     suspend fun GetTodaysAssignedOrders(
