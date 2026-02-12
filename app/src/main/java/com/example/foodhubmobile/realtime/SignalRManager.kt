@@ -11,9 +11,14 @@ object SignalRManager {
         driverId: String,
         onOrderAssigned: (String) -> Unit
     ) {
+         //        hubConnection = HubConnectionBuilder
+//            .create("http://192.168.8.134:5187/deliveryHub")
+//            .build()
+
         hubConnection = HubConnectionBuilder
-            .create("http://192.168.8.134:5187/deliveryHub")
+            .create("https://improved-guacamole-97xv7w95rqxj3jj7-5187.app.github.dev/deliveryHub")
             .build()
+
 
         hubConnection?.on(
             "OrderAssigned",
